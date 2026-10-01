@@ -1,0 +1,707 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { StorageService } from "@/lib/storage";
+import {
+  Course,
+  Quiz,
+  LibraryResource,
+  QuizSubmission,
+  QuizQuestion,
+} from "@/types";
+import {
+  GraduationCap,
+  PlusCircle,
+  Users,
+  FileText,
+  Video,
+  Clock,
+  CheckCircle,
+  XCircle,
+  HelpCircle,
+  BookOpen,
+  Calendar,
+  Save,
+  Trash2,
+  Send,
+  Sparkles,
+} from "lucide-react";
+
+export default function TrainerPortal() {
+  const { currentUser, fastLoginAs, updateCurrentUserProfile } = useAuth();
+
+  const [activeTab, setActiveTab] = useState<
+    "builder" | "monitoring" | "library" | "profile"
+  >("builder");
+
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [resources, setResources] = useState<LibraryResource[]>([]);
+  const [submissions, setSubmissions] = useState<QuizSubmission[]>([]);
+
+  // Quiz Builder State
+  const [quizTitle, setQuizTitle] = useState("");
+  const [quizDescription, setQuizDescription] = useState("");
+  const [quizCourseId, setQuizCourseId] = useState("");
+  const [quizDuration, setQuizDuration] = useState(20);
+  const [quizDeadline, setQuizDeadline] = useState("2026-12-31");
+  const [quizPassingScore, setQuizPassingScore] = useState(70);
+
+  const [questions, setQuestions] = useState<QuizQuestion[]>([
+    {
+      id: 1,
+      questionText: "",
+      options: ["", "", "", ""],
+      correctOptionIndex: 0,
+      explanation: "",
+    },
+  ]);
+  const [quizSuccessNotice, setQuizSuccessNotice] = useState<string | null>(null);
+
+  // Resource Upload State
+  const [resTitle, setResTitle] = useState("");
+  const [resType, setResType] = useState<"video" | "presentation" | "manual">("video");
+  const [resUrl, setResUrl] = useState("");
+  const [resCourseId, setResCourseId] = useState("");
+  const [resSize, setResSize] = useState("");
+  const [resDesc, setResDesc] = useState("");
+  const [resSuccessNotice, setResSuccessNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    refreshData();
+  }, [currentUser]);
+
+  const refreshData = () => {
+    const allCourses = StorageService.getCourses();
+    setCourses(allCourses);
+    setQuizzes(StorageService.getQuizzes());
+    setResources(StorageService.getResources());
+    setSubmissions(StorageService.getSubmissions());
+    if (allCourses.length > 0 && !quizCourseId) {
+      setQuizCourseId(allCourses[0].id);
+      setResCourseId(allCourses[0].id);
+    }
+  };
+
+  // Add Question to Quiz Builder
+  const handleAddQuestion = () => {
+    const newQ: QuizQuestion = {
+      id: questions.length + 1,
+      questionText: "",
+      options: ["", "", "", ""],
+      correctOptionIndex: 0,
+      explanation: "",
+    };
+    setQuestions([...questions, newQ]);
+  };
+
+  const handleUpdateQuestion = (index: number, field: keyof QuizQuestion, value: any) => {
+    const updated = [...questions];
+    updated[index] = { ...updated[index], [field]: value };
+    setQuestions(updated);
+  };
+
+  const handleUpdateOption = (qIndex: number, optIndex: number, text: string) => {
+    const updated = [...questions];
+    const newOptions = [...updated[qIndex].options];
+    newOptions[optIndex] = text;
+    updated[qIndex].options = newOptions;
+    setQuestions(updated);
+  };
+
+  const handleRemoveQuestion = (index: number) => {
+    if (questions.length <= 1) return;
+    setQuestions(questions.filter((_, idx) => idx !== index));
+  };
+
+  // Save new Quiz
+  const handleSaveQuiz = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser || !quizTitle || !quizCourseId) return;
+
+    const course = courses.find((c) => c.id === quizCourseId);
+
+    const created = StorageService.createQuiz({
+      courseId: quizCourseId,
+      courseTitle: course ? course.title : "Atmospheric Met",
+      title: quizTitle,
+      description: quizDescription,
+      durationMinutes: Number(quizDuration),
+      deadline: `${quizDeadline}T23:59:59Z`,
+      passingScore: Number(quizPassingScore),
+      createdBy: currentUser.uid,
+      createdByName: currentUser.displayName,
+      questions,
+    });
+
+    setQuizSuccessNotice(`Assessment "${created.title}" successfully published and assigned to trainees!`);
+    setQuizTitle("");
+    setQuizDescription("");
+    setQuestions([
+      {
+        id: 1,
+        questionText: "",
+        options: ["", "", "", ""],
+        correctOptionIndex: 0,
+        explanation: "",
+      },
+    ]);
+    refreshData();
+    setTimeout(() => setQuizSuccessNotice(null), 4000);
+  };
+
+  // Upload Resource
+  const handleUploadResource = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser || !resTitle || !resCourseId) return;
+
+    const course = courses.find((c) => c.id === resCourseId);
+
+    StorageService.addResource({
+      courseId: resCourseId,
+      courseTitle: course ? course.title : "Course Module",
+      title: resTitle,
+      type: resType,
+      url: resUrl || "https://imdpune.gov.in/study_material.pdf",
+      uploadedBy: currentUser.uid,
+      uploadedByName: currentUser.displayName,
+      sizeOrDuration: resSize || "45 Mins / 15 MB",
+      description: resDesc,
+    });
+
+    setResSuccessNotice(`Study material "${resTitle}" uploaded to Trainer Library!`);
+    setResTitle("");
+    setResUrl("");
+    setResDesc("");
+    setResSize("");
+    refreshData();
+    setTimeout(() => setResSuccessNotice(null), 4000);
+  };
+
+  if (!currentUser) {
+    return (
+      <div className="max-w-4xl mx-auto my-16 p-8 bg-white rounded-2xl border border-slate-200 text-center space-y-4 shadow-sm">
+        <GraduationCap className="w-12 h-12 text-emerald-600 mx-auto" />
+        <h2 className="text-xl font-bold text-slate-900">Trainer Access Required</h2>
+        <p className="text-sm text-slate-600">
+          Please log in as a registered Faculty / Trainer, or use the 1-click evaluator demo button below:
+        </p>
+        <button
+          onClick={() => fastLoginAs("trainer")}
+          className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold text-sm shadow-sm"
+        >
+          👨‍🏫 Fast Login as Trainer (Dr. R. S. Sharma)
+        </button>
+      </div>
+    );
+  }
+
+  // Filter quizzes and resources assigned or created by trainer
+  const myCourses = courses.filter((c) => c.trainerId === currentUser.uid || true);
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Header Profile Summary Card */}
+      <div className="bg-gradient-to-r from-[#0b2545] via-[#134e5e] to-[#008080] text-white p-6 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex items-center space-x-4">
+          <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-emerald-400 font-bold text-2xl shadow-inner">
+            {currentUser.displayName.charAt(0)}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-bold">{currentUser.displayName}</h1>
+              <span className="text-[11px] bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded font-semibold flex items-center gap-1">
+                <CheckCircle className="w-3 h-3 text-emerald-400" /> Authorized Faculty
+              </span>
+            </div>
+            <p className="text-xs text-slate-300 mt-1">
+              {currentUser.designation} • {currentUser.department} • {currentUser.location}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <div className="text-right text-xs bg-white/10 px-3 py-2 rounded-xl border border-white/10">
+            <span className="text-slate-300 block text-[10px] uppercase font-bold">Quizzes Built</span>
+            <span className="text-lg font-extrabold text-amber-400">{quizzes.length}</span>
+          </div>
+          <div className="text-right text-xs bg-white/10 px-3 py-2 rounded-xl border border-white/10">
+            <span className="text-slate-300 block text-[10px] uppercase font-bold">Submissions Monitored</span>
+            <span className="text-lg font-extrabold text-cyan-300">{submissions.length}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Trainer Navigation Tabs */}
+      <div className="flex overflow-x-auto gap-2 border-b border-slate-200 pb-2 text-sm font-semibold scrollbar-none">
+        <button
+          onClick={() => setActiveTab("builder")}
+          className={`px-4 py-2 rounded-xl transition flex items-center gap-2 shrink-0 ${
+            activeTab === "builder"
+              ? "bg-[#0b2545] text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <PlusCircle className="w-4 h-4 text-emerald-400" />
+          <span>Questionnaire & Quiz Builder</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("monitoring")}
+          className={`px-4 py-2 rounded-xl transition flex items-center gap-2 shrink-0 ${
+            activeTab === "monitoring"
+              ? "bg-[#0b2545] text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <Users className="w-4 h-4 text-blue-400" />
+          <span>Trainee Gradebook & Monitoring ({submissions.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("library")}
+          className={`px-4 py-2 rounded-xl transition flex items-center gap-2 shrink-0 ${
+            activeTab === "library"
+              ? "bg-[#0b2545] text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <FileText className="w-4 h-4 text-amber-400" />
+          <span>Trainer Library Uploader ({resources.length})</span>
+        </button>
+      </div>
+
+      {/* TAB 1: QUESTIONNAIRE & ASSESSMENT BUILDER */}
+      {activeTab === "builder" && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">
+              Create Subject-Wise MCQ Assessment
+            </h2>
+            <p className="text-xs text-slate-500">
+              Formulate standardized multiple-choice questionnaires with countdown timers, deadlines, and answer keys.
+            </p>
+          </div>
+
+          {quizSuccessNotice && (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-center gap-2 font-medium">
+              <CheckCircle className="w-4 h-4 text-emerald-600" />
+              <span>{quizSuccessNotice}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSaveQuiz} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
+            {/* Meta info */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Assessment Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Unit 3: Doppler Radar Dual-Pol Hydrometeor Classification"
+                  value={quizTitle}
+                  onChange={(e) => setQuizTitle(e.target.value)}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Associated Course
+                </label>
+                <select
+                  value={quizCourseId}
+                  onChange={(e) => setQuizCourseId(e.target.value)}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545]"
+                >
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.code} - {c.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="md:col-span-3">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Assessment Instructions & Overview
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Provide guidance on topics covered, pass criteria, and instructions for trainees..."
+                  value={quizDescription}
+                  onChange={(e) => setQuizDescription(e.target.value)}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Time Limit (Minutes)
+                </label>
+                <input
+                  type="number"
+                  min={5}
+                  max={120}
+                  required
+                  value={quizDuration}
+                  onChange={(e) => setQuizDuration(Number(e.target.value))}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Submission Deadline Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={quizDeadline}
+                  onChange={(e) => setQuizDeadline(e.target.value)}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Passing Threshold (%)
+                </label>
+                <input
+                  type="number"
+                  min={40}
+                  max={100}
+                  required
+                  value={quizPassingScore}
+                  onChange={(e) => setQuizPassingScore(Number(e.target.value))}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545]"
+                />
+              </div>
+            </div>
+
+            {/* Questions Section */}
+            <div className="space-y-4 pt-4 border-t border-slate-200">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-sm text-slate-900">
+                  Questions Pool ({questions.length})
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleAddQuestion}
+                  className="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-lg text-xs font-semibold flex items-center gap-1 border border-blue-200"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" /> + Add Question
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {questions.map((q, qIdx) => (
+                  <div
+                    key={q.id}
+                    className="p-5 rounded-xl border border-slate-200 bg-slate-50 space-y-3 relative"
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs font-bold text-slate-700">
+                        Question #{qIdx + 1}
+                      </span>
+                      {questions.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveQuestion(qIdx)}
+                          className="text-red-500 hover:text-red-700 p-1 text-xs"
+                          title="Delete Question"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter question text here..."
+                      value={q.questionText}
+                      onChange={(e) => handleUpdateQuestion(qIdx, "questionText", e.target.value)}
+                      className="w-full text-xs p-2.5 border border-slate-300 rounded-lg bg-white font-medium"
+                    />
+
+                    {/* 4 Choices */}
+                    <div className="space-y-2">
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                        Options (Designate Correct Option Radio)
+                      </label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {q.options.map((opt, optIdx) => (
+                          <div
+                            key={optIdx}
+                            className="flex items-center gap-2 bg-white p-2 rounded-lg border border-slate-200"
+                          >
+                            <input
+                              type="radio"
+                              name={`correct_${qIdx}`}
+                              checked={q.correctOptionIndex === optIdx}
+                              onChange={() => handleUpdateQuestion(qIdx, "correctOptionIndex", optIdx)}
+                              className="w-4 h-4 text-emerald-600 focus:ring-emerald-500"
+                            />
+                            <span className="text-xs font-bold text-slate-400 w-4">
+                              {String.fromCharCode(65 + optIdx)}
+                            </span>
+                            <input
+                              type="text"
+                              required
+                              placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
+                              value={opt}
+                              onChange={(e) => handleUpdateOption(qIdx, optIdx, e.target.value)}
+                              className="text-xs w-full focus:outline-none"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Scientific Explanation */}
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                        Scientific Explanation (Shown to trainees after test completion)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Provide scientific rationale / reference for correct choice..."
+                        value={q.explanation}
+                        onChange={(e) => handleUpdateQuestion(qIdx, "explanation", e.target.value)}
+                        className="w-full text-xs p-2 border border-slate-300 rounded-lg bg-white"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-slate-200 flex justify-end">
+              <button
+                type="submit"
+                className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5"
+              >
+                <Save className="w-4 h-4" /> Save & Publish Assessment
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* TAB 2: TRAINEE GRADEBOOK & MONITORING */}
+      {activeTab === "monitoring" && (
+        <div className="space-y-6">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">
+              Trainee Participation & Assessment Performance Gradebook
+            </h2>
+            <p className="text-xs text-slate-500">
+              Monitor test scores, completion timestamps, and pass/fail statistics across all meteorological courses.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-slate-700">
+                <thead className="bg-[#0b2545] text-white uppercase text-[10px] tracking-wider">
+                  <tr>
+                    <th className="py-3.5 px-4 font-bold">Trainee Name</th>
+                    <th className="py-3.5 px-4 font-bold">Assessment Title</th>
+                    <th className="py-3.5 px-4 font-bold">Score</th>
+                    <th className="py-3.5 px-4 font-bold">Percentage</th>
+                    <th className="py-3.5 px-4 font-bold">Status</th>
+                    <th className="py-3.5 px-4 font-bold">Submission Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {submissions.length > 0 ? (
+                    submissions.map((sub) => (
+                      <tr key={sub.id} className="hover:bg-slate-50 transition">
+                        <td className="py-3 px-4 font-bold text-slate-900">
+                          {sub.traineeName}
+                        </td>
+                        <td className="py-3 px-4">{sub.quizTitle}</td>
+                        <td className="py-3 px-4 font-mono font-bold">
+                          {sub.score} / {sub.totalQuestions}
+                        </td>
+                        <td className="py-3 px-4 font-bold">{sub.percentage}%</td>
+                        <td className="py-3 px-4">
+                          {sub.passed ? (
+                            <span className="px-2 py-0.5 rounded bg-green-100 text-green-800 font-bold text-[10px]">
+                              PASSED
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded bg-red-100 text-red-800 font-bold text-[10px]">
+                              FAILED
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">
+                          {new Date(sub.submittedAt).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-400 italic">
+                        No submissions recorded yet.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: TRAINER LIBRARY UPLOADER */}
+      {activeTab === "library" && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Upload Form */}
+          <div className="lg:col-span-1 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <h3 className="font-bold text-sm text-slate-900 border-b border-slate-100 pb-2">
+              Upload New Study Material
+            </h3>
+
+            {resSuccessNotice && (
+              <div className="p-2.5 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg">
+                {resSuccessNotice}
+              </div>
+            )}
+
+            <form onSubmit={handleUploadResource} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Resource Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Lecture 05: Radar Clutter Filtering"
+                  value={resTitle}
+                  onChange={(e) => setResTitle(e.target.value)}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Resource Type
+                </label>
+                <select
+                  value={resType}
+                  onChange={(e) => setResType(e.target.value as any)}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg"
+                >
+                  <option value="video">Recorded Video Lecture</option>
+                  <option value="presentation">Presentation Deck (PPT/Slides)</option>
+                  <option value="manual">Technical SOP / Manual (PDF)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Target Course
+                </label>
+                <select
+                  value={resCourseId}
+                  onChange={(e) => setResCourseId(e.target.value)}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg"
+                >
+                  {courses.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.code} - {c.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  URL / Resource Link
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://imdpune.gov.in/lecture_05.mp4"
+                  value={resUrl}
+                  onChange={(e) => setResUrl(e.target.value)}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Size or Duration
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 48 Mins or 12.5 MB (PDF)"
+                  value={resSize}
+                  onChange={(e) => setResSize(e.target.value)}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Summary Description
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Explain topics covered in this material..."
+                  value={resDesc}
+                  onChange={(e) => setResDesc(e.target.value)}
+                  className="w-full text-xs p-2.5 border border-slate-300 rounded-lg"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow flex items-center justify-center gap-1.5"
+              >
+                <Send className="w-3.5 h-3.5" /> Upload to Library
+              </button>
+            </form>
+          </div>
+
+          {/* Uploaded Materials List */}
+          <div className="lg:col-span-2 space-y-4">
+            <h3 className="font-bold text-sm text-slate-900 border-b border-slate-200 pb-2">
+              Currently Available Resources in Trainer Library ({resources.length})
+            </h3>
+
+            <div className="space-y-3">
+              {resources.map((res) => (
+                <div
+                  key={res.id}
+                  className="bg-white rounded-xl border border-slate-200 p-4 shadow-sm space-y-2 flex justify-between items-start"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
+                        {res.type}
+                      </span>
+                      <span className="text-[11px] text-blue-700 font-semibold">
+                        {res.courseTitle}
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-xs text-slate-900">{res.title}</h4>
+                    <p className="text-xs text-slate-600 leading-relaxed">{res.description}</p>
+                    <div className="text-[11px] text-slate-400">
+                      Uploaded by: {res.uploadedByName} • {res.sizeOrDuration}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
