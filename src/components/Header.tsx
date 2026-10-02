@@ -7,7 +7,6 @@ import { useAuth } from "@/context/AuthContext";
 import {
   GraduationCap,
   ShieldCheck,
-  User,
   LogOut,
   LogIn,
   UserPlus,
@@ -15,10 +14,9 @@ import {
   AlertCircle,
   Menu,
   X,
-  Compass,
-  Building2,
   BookOpen,
   Send,
+  Zap,
 } from "lucide-react";
 import AuthModal from "./AuthModal";
 
@@ -33,7 +31,7 @@ export default function Header() {
   const handleResendVerification = async () => {
     const res = await resendVerificationEmail();
     if (res.success) {
-      setVerificationNotice("Activation verification link resent! Please check your email inbox.");
+      setVerificationNotice("Activation link resent! Check your email inbox.");
       setTimeout(() => setVerificationNotice(null), 5000);
     }
   };
@@ -45,63 +43,34 @@ export default function Header() {
 
   return (
     <>
-      {/* Top Institutional Government Header Bar */}
-      <div className="bg-[#0a192f] text-slate-300 text-xs py-1.5 px-4 border-b border-slate-800">
-        <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
-          <div className="flex items-center space-x-3">
-            <span className="font-semibold text-white tracking-wide flex items-center gap-1.5">
-              <Building2 className="w-3.5 h-3.5 text-amber-400" />
-              भारत सरकार | Government of India
-            </span>
-            <span className="text-slate-600">|</span>
-            <span className="text-slate-300">
-              Ministry of Earth Sciences (MoES) • India Meteorological Department (IMD)
-            </span>
-          </div>
-
-          <div className="flex items-center space-x-4 text-[11px] text-slate-400">
-            <span className="hidden sm:inline">24x7 Weather & Training Support: 1800-180-1717</span>
-            <span className="text-slate-600">|</span>
-            <span className="text-emerald-400 font-medium">NIC National Cloud Verified</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Indian Tricolor Ribbon */}
-      <div className="tricolor-ribbon" />
-
       {/* Main Navigation Bar */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-16">
+
             {/* Brand Logo */}
-            <Link href="/" className="flex items-center space-x-3 group">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#0b2545] to-[#003b6d] flex items-center justify-center text-white shadow-md group-hover:scale-105 transition-transform">
-                <Compass className="w-7 h-7 text-amber-400" />
+            <Link href="/" className="flex items-center space-x-2.5 group">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform">
+                <Zap className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="font-extrabold text-xl tracking-tight text-[#0b2545]">
-                    CAPACITY<span className="text-[#008080]">CONNECT</span>
-                  </span>
-                  <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">
-                    MoES Portal
-                  </span>
-                </div>
-                <span className="text-xs text-slate-500 font-medium">
-                  Digital Capacity Building & Learning Management System
+                <span className="font-extrabold text-lg tracking-tight text-gray-900 leading-none">
+                  Capacity<span className="text-indigo-600">Connect</span>
+                </span>
+                <span className="text-[10px] text-gray-400 font-medium leading-none mt-0.5">
+                  Professional Learning Platform
                 </span>
               </div>
             </Link>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
+            <nav className="hidden md:flex items-center space-x-1">
               <Link
                 href="/"
-                className={`px-3 py-2 rounded-lg text-sm font-semibold transition ${
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition ${
                   pathname === "/"
-                    ? "text-[#0b2545] bg-slate-100"
-                    : "text-slate-600 hover:text-[#0b2545] hover:bg-slate-50"
+                    ? "text-indigo-700 bg-indigo-50 font-semibold"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
                 }`}
               >
                 Home
@@ -109,26 +78,26 @@ export default function Header() {
 
               <Link
                 href="/#courses"
-                className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-[#0b2545] hover:bg-slate-50 transition"
+                className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition"
               >
-                Courses & Modules
+                Courses
               </Link>
 
               <Link
                 href="/#notices"
-                className="px-3 py-2 rounded-lg text-sm font-semibold text-slate-600 hover:text-[#0b2545] hover:bg-slate-50 transition"
+                className="px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition"
               >
-                Circulars & Notices
+                Announcements
               </Link>
 
               {/* Dynamic Role-Based Links when Authenticated */}
               {currentUser && currentUser.role === "trainee" && (
                 <Link
                   href="/trainee"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
                     pathname.startsWith("/trainee")
-                      ? "text-blue-700 bg-blue-50 font-bold"
-                      : "text-blue-600 hover:bg-blue-50"
+                      ? "text-indigo-700 bg-indigo-50 font-semibold"
+                      : "text-indigo-600 hover:bg-indigo-50"
                   }`}
                 >
                   <BookOpen className="w-4 h-4" />
@@ -139,9 +108,9 @@ export default function Header() {
               {currentUser && currentUser.role === "trainer" && (
                 <Link
                   href="/trainer"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
                     pathname.startsWith("/trainer")
-                      ? "text-emerald-700 bg-emerald-50 font-bold"
+                      ? "text-emerald-700 bg-emerald-50 font-semibold"
                       : "text-emerald-600 hover:bg-emerald-50"
                   }`}
                 >
@@ -153,10 +122,10 @@ export default function Header() {
               {currentUser && currentUser.role === "admin" && (
                 <Link
                   href="/admin"
-                  className={`px-3 py-2 rounded-lg text-sm font-semibold transition flex items-center gap-1.5 ${
+                  className={`px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
                     pathname.startsWith("/admin")
-                      ? "text-amber-700 bg-amber-50 font-bold"
-                      : "text-amber-600 hover:bg-amber-50"
+                      ? "text-violet-700 bg-violet-50 font-semibold"
+                      : "text-violet-600 hover:bg-violet-50"
                   }`}
                 >
                   <ShieldCheck className="w-4 h-4" />
@@ -168,53 +137,52 @@ export default function Header() {
             {/* User Session / Sign In CTAs */}
             <div className="hidden md:flex items-center space-x-3">
               {currentUser ? (
-                <div className="flex items-center space-x-3 pl-3 border-l border-slate-200">
+                <div className="flex items-center space-x-3 pl-3 border-l border-gray-200">
                   <div className="text-right">
                     <div className="flex items-center justify-end gap-1.5">
-                      <span className="font-bold text-sm text-slate-800">
+                      <span className="font-semibold text-sm text-gray-900">
                         {currentUser.displayName}
                       </span>
                       {currentUser.status === "approved" ? (
-                        <span className="inline-flex items-center text-[10px] bg-green-100 text-green-800 font-semibold px-1.5 py-0.5 rounded">
-                          Approved
+                        <span className="inline-flex items-center text-[10px] bg-emerald-100 text-emerald-800 font-semibold px-1.5 py-0.5 rounded-full">
+                          Active
                         </span>
                       ) : (
-                        <span className="inline-flex items-center text-[10px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.5 rounded">
-                          Pending Approval
+                        <span className="inline-flex items-center text-[10px] bg-amber-100 text-amber-800 font-semibold px-1.5 py-0.5 rounded-full">
+                          Pending
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center justify-end gap-1.5 text-xs text-slate-500">
-                      <span className="capitalize font-medium text-slate-700 bg-slate-100 px-1.5 py-0.2 rounded text-[11px]">
+                    <div className="flex items-center justify-end gap-1 text-xs text-gray-400">
+                      <span className="capitalize font-medium text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded text-[11px]">
                         {currentUser.role}
                       </span>
-                      <span>•</span>
-                      <span className="truncate max-w-[130px]">{currentUser.location}</span>
                     </div>
                   </div>
 
                   <button
                     onClick={logout}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
+                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition"
                     title="Sign Out"
                   >
                     <LogOut className="w-5 h-5" />
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-2.5">
+                <div className="flex items-center space-x-2">
                   <button
                     onClick={() => openAuth("signin")}
-                    className="px-4 py-2 rounded-xl text-slate-700 hover:text-[#0b2545] hover:bg-slate-100 text-sm font-semibold transition"
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-gray-700 hover:text-gray-900 hover:bg-gray-100 text-sm font-medium transition"
                   >
+                    <LogIn className="w-4 h-4" />
                     Sign In
                   </button>
                   <button
                     onClick={() => openAuth("register")}
-                    className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-[#0b2545] hover:bg-[#003b6d] text-white text-sm font-semibold shadow-sm transition"
+                    className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow-sm transition"
                   >
                     <UserPlus className="w-4 h-4" />
-                    <span>Register</span>
+                    <span>Get Started</span>
                   </button>
                 </div>
               )}
@@ -224,7 +192,7 @@ export default function Header() {
             <div className="flex md:hidden items-center space-x-2">
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -234,34 +202,34 @@ export default function Header() {
 
         {/* Mobile menu dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 bg-white px-4 pt-2 pb-4 space-y-2">
+          <div className="md:hidden border-t border-gray-200 bg-white px-4 pt-2 pb-4 space-y-1">
             <Link
               href="/"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md font-semibold text-slate-700 hover:bg-slate-100"
+              className="block px-3 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100"
             >
               Home
             </Link>
             <Link
               href="/#courses"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md font-semibold text-slate-700 hover:bg-slate-100"
+              className="block px-3 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100"
             >
-              Courses & Modules
+              Courses
             </Link>
             <Link
               href="/#notices"
               onClick={() => setMobileMenuOpen(false)}
-              className="block px-3 py-2 rounded-md font-semibold text-slate-700 hover:bg-slate-100"
+              className="block px-3 py-2 rounded-lg font-medium text-gray-700 hover:bg-gray-100"
             >
-              Circulars & Notices
+              Announcements
             </Link>
 
             {currentUser && currentUser.role === "trainee" && (
               <Link
                 href="/trainee"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-md font-semibold text-blue-700 bg-blue-50"
+                className="block px-3 py-2 rounded-lg font-semibold text-indigo-700 bg-indigo-50"
               >
                 My Learning Dashboard
               </Link>
@@ -271,7 +239,7 @@ export default function Header() {
               <Link
                 href="/trainer"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-md font-semibold text-emerald-700 bg-emerald-50"
+                className="block px-3 py-2 rounded-lg font-semibold text-emerald-700 bg-emerald-50"
               >
                 Trainer Workspace
               </Link>
@@ -281,18 +249,18 @@ export default function Header() {
               <Link
                 href="/admin"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block px-3 py-2 rounded-md font-semibold text-amber-700 bg-amber-50"
+                className="block px-3 py-2 rounded-lg font-semibold text-violet-700 bg-violet-50"
               >
                 Admin Console
               </Link>
             )}
 
-            <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+            <div className="pt-3 border-t border-gray-100 flex flex-col gap-2">
               {currentUser ? (
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center px-1">
                   <div>
-                    <p className="font-bold text-sm text-slate-900">{currentUser.displayName}</p>
-                    <p className="text-xs text-slate-500 capitalize">{currentUser.role} • {currentUser.status}</p>
+                    <p className="font-semibold text-sm text-gray-900">{currentUser.displayName}</p>
+                    <p className="text-xs text-gray-400 capitalize">{currentUser.role} · {currentUser.status}</p>
                   </div>
                   <button
                     onClick={logout}
@@ -304,22 +272,16 @@ export default function Header() {
               ) : (
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      openAuth("signin");
-                    }}
-                    className="py-2 border border-slate-300 text-slate-700 text-center rounded-xl font-semibold text-sm"
+                    onClick={() => { setMobileMenuOpen(false); openAuth("signin"); }}
+                    className="py-2 border border-gray-300 text-gray-700 text-center rounded-xl font-semibold text-sm"
                   >
                     Sign In
                   </button>
                   <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      openAuth("register");
-                    }}
-                    className="py-2 bg-[#0b2545] text-white text-center rounded-xl font-semibold text-sm"
+                    onClick={() => { setMobileMenuOpen(false); openAuth("register"); }}
+                    className="py-2 bg-indigo-600 text-white text-center rounded-xl font-semibold text-sm"
                   >
-                    Register
+                    Get Started
                   </button>
                 </div>
               )}
@@ -327,27 +289,27 @@ export default function Header() {
           </div>
         )}
 
-        {/* Verification banner if user logged in but email not verified */}
+        {/* Verification banner */}
         {currentUser && !currentUser.emailVerified && (
           <div className="bg-amber-50 border-t border-amber-200 px-4 py-2 text-xs text-amber-900 flex justify-between items-center">
             <div className="flex items-center space-x-2 max-w-7xl mx-auto w-full">
               <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
               <span>
-                <strong>Account Activation Pending:</strong> Please click the activation link sent to your email to verify your account.
+                <strong>Email not verified:</strong> Please click the activation link sent to your email address.
               </span>
               <button
                 onClick={handleResendVerification}
                 className="ml-2 font-bold underline hover:text-amber-700 flex items-center gap-1"
               >
-                <Send className="w-3 h-3" /> Resend Activation Link
+                <Send className="w-3 h-3" /> Resend Link
               </button>
             </div>
           </div>
         )}
 
         {verificationNotice && (
-          <div className="bg-green-50 border-t border-green-200 px-4 py-2 text-xs text-green-900 text-center font-medium">
-            <CheckCircle2 className="w-4 h-4 inline mr-1 text-green-600" />
+          <div className="bg-emerald-50 border-t border-emerald-200 px-4 py-2 text-xs text-emerald-900 text-center font-medium">
+            <CheckCircle2 className="w-4 h-4 inline mr-1 text-emerald-600" />
             {verificationNotice}
           </div>
         )}

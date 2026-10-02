@@ -9,20 +9,19 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        imd: {
-          navy: "#0a192f",
-          dark: "#0b2545",
-          primary: "#003b6d",
-          accent: "#008080",
-          saffron: "#ff9933",
-          green: "#138808",
-          light: "#f0f4f8",
-          card: "#ffffff",
-          border: "#e2e8f0",
+        brand: {
+          primary: "#4F46E5",   // Indigo-600
+          secondary: "#7C3AED", // Violet-600
+          light: "#EEF2FF",     // Indigo-50
+          dark: "#3730A3",      // Indigo-800
         },
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+      },
+      backgroundImage: {
+        "hero-gradient":
+          "linear-gradient(135deg, #EEF2FF 0%, #FFFFFF 50%, #F5F3FF 100%)",
       },
     },
   },
