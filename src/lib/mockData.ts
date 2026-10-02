@@ -111,7 +111,7 @@ export const INITIAL_COURSES: Course[] = [
     trainerId: "trainer-1",
     trainerName: "Alice Smith",
     durationHours: 20,
-    level: "Beginner",
+    level: "Basic",
     syllabus: [
       "Python Basics",
       "Data Manipulation with Pandas",
@@ -154,7 +154,7 @@ export const INITIAL_ANNOUNCEMENTS: Announcement[] = [
   {
     id: "ann-1",
     title: "Welcome to the New CapacityConnect Platform",
-    category: "general",
+    category: "circular",
     priority: "normal",
     content: "We are excited to launch our newly redesigned learning platform. Explore our catalog and start learning today!",
     publishedBy: "Platform Admin",
