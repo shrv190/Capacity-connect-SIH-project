@@ -13,6 +13,8 @@ import {
   CheckCircle,
   AlertCircle,
   Send,
+  Briefcase,
+  MapPin,
 } from "lucide-react";
 
 interface AuthModalProps {
@@ -30,6 +32,8 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signin" }: A
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [department, setDepartment] = useState("");
+  const [designation, setDesignation] = useState("");
+  const [location, setLocation] = useState("");
   const [role, setRole] = useState<UserRole>("trainee");
 
   const [loading, setLoading] = useState(false);
@@ -62,7 +66,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signin" }: A
       return;
     }
 
-    const res = await signupWithEmail(email, password, displayName, role, department);
+    const res = await signupWithEmail(email, password, displayName, role, department, designation, location);
     setLoading(false);
 
     if (res.success) {
@@ -278,7 +282,41 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signin" }: A
                     required
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="e.g. Radar Division, RMC New Delhi"
+                    placeholder="e.g. Radar Division, MoES"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Designation
+                </label>
+                <div className="relative">
+                  <Briefcase className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    required
+                    value={designation}
+                    onChange={(e) => setDesignation(e.target.value)}
+                    placeholder="e.g. Senior Scientist"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Location / Station
+                </label>
+                <div className="relative">
+                  <MapPin className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    required
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    placeholder="e.g. New Delhi"
                     className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   />
                 </div>

@@ -27,7 +27,9 @@ interface AuthContextType {
     pass: string,
     displayName: string,
     role: UserRole,
-    department: string
+    department: string,
+    designation: string,
+    location: string
   ) => Promise<{ success: boolean; error?: string; verificationSent?: boolean }>;
   resendVerificationEmail: () => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -147,7 +149,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     pass: string,
     displayName: string,
     role: UserRole,
-    department: string
+    department: string,
+    designation: string,
+    location: string
   ): Promise<{ success: boolean; error?: string; verificationSent?: boolean }> => {
     try {
       let uid = `user-${Date.now()}`;
@@ -168,8 +172,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         status: "pending",
         emailVerified: false,
         department: department || "India Meteorological Department (MoES)",
-        designation: role === "trainer" ? "Senior Scientist / Instructor" : "Scientific Officer / Trainee",
-        location: "IMD Field Station",
+        designation: designation || (role === "trainer" ? "Senior Scientist / Instructor" : "Scientific Officer / Trainee"),
+        location: location || "IMD Field Station",
         qualifications: [],
         experience: [],
         skills: [],
