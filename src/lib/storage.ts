@@ -20,7 +20,7 @@ import {
 } from "./mockData";
 
 const STORAGE_KEYS = {
-  USERS: "capacity_connect_users_v3",
+  USERS: "capacity_connect_users_v4",
   COURSES: "capacity_connect_courses_v3",
   QUIZZES: "capacity_connect_quizzes_v3",
   SUBMISSIONS: "capacity_connect_submissions_v3",
