@@ -46,8 +46,8 @@ export default function HomePage() {
     "All",
     "Software Engineering",
     "Data Science",
-    "Product Management",
-    "Design Thinking",
+    "Hardware Engineering",
+    "Artificial Intelligence",
     "Business Analytics",
   ];
 
