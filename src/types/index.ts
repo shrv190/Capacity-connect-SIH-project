@@ -63,6 +63,19 @@ export interface Course {
   reviewsCount: number;
   thumbnailUrl: string;
   createdAt: string;
+  archived?: boolean;
+  archivedByAdmin?: boolean;
+  pendingMigrationToId?: string;
+  pendingMigrationToName?: string;
+}
+
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  createdBy: string;
+  createdByName: string;
+  createdAt: string;
 }
 
 export interface LibraryResource {

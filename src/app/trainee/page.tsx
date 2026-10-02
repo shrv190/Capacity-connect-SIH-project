@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { FirestoreService } from "@/lib/firestore";
 import { StorageService } from "@/lib/storage";
 import {
   Course,
@@ -31,6 +32,7 @@ import {
   ExternalLink,
   QrCode,
   Calendar,
+  Bell
 } from "lucide-react";
 import confetti from "canvas-confetti";
 import AuthModal from "@/components/AuthModal";
@@ -40,13 +42,14 @@ export default function TraineePortal() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<
-    "profile" | "courses" | "library" | "assessments" | "feedback"
+    "profile" | "courses" | "library" | "assessments" | "feedback" | "notifications"
   >("profile");
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [resources, setResources] = useState<LibraryResource[]>([]);
   const [submissions, setSubmissions] = useState<QuizSubmission[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   // Assessment Engine States
   const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
@@ -79,12 +82,20 @@ export default function TraineePortal() {
     refreshData();
   }, [currentUser]);
 
-  const refreshData = () => {
-    setCourses(StorageService.getCourses());
-    setQuizzes(StorageService.getQuizzes());
-    setResources(StorageService.getResources());
+  const refreshData = async () => {
+    const allCourses = await FirestoreService.getCourses();
+    setCourses(allCourses);
+    
+    // Quizzes & Resources are local/empty since not migrated fully to firestore for saving
+    setQuizzes([]);
+    setResources([]);
+    
+    const notifs = await FirestoreService.getNotifications();
+    setNotifications(notifs);
+
     if (currentUser) {
-      setSubmissions(StorageService.getSubmissionsByTrainee(currentUser.uid));
+      const allSubs = await FirestoreService.getSubmissions();
+      setSubmissions(allSubs.filter(s => s.traineeId === currentUser.uid));
     }
   };
 
@@ -330,6 +341,21 @@ export default function TraineePortal() {
 
         <button
           onClick={() => {
+            setActiveTab("notifications");
+            setActiveQuiz(null);
+          }}
+          className={`px-4 py-2 rounded-xl transition flex items-center gap-2 shrink-0 ${
+            activeTab === "notifications" && !activeQuiz
+              ? "bg-[#0b2545] text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <Bell className="w-4 h-4" />
+          <span>Notifications {notifications.length > 0 && `(${notifications.length})`}</span>
+        </button>
+
+        <button
+          onClick={() => {
             setActiveTab("courses");
             setActiveQuiz(null);
           }}
@@ -385,6 +411,33 @@ export default function TraineePortal() {
           <span>Course Feedback</span>
         </button>
       </div>
+
+      {/* TAB: NOTIFICATIONS */}
+      {activeTab === "notifications" && !activeQuiz && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-bold text-slate-900">Trainer Notifications</h2>
+          <div className="grid grid-cols-1 gap-4">
+            {notifications.length === 0 ? (
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 text-center text-slate-500">
+                You have no new notifications from your trainers.
+              </div>
+            ) : (
+              notifications.map((n) => (
+                <div key={n.id} className="bg-white border-l-4 border-l-amber-500 border-y border-r border-slate-200 rounded-r-2xl p-5 shadow-sm">
+                  <div className="flex justify-between items-start">
+                    <h3 className="font-bold text-slate-900">{n.title}</h3>
+                    <span className="text-xs text-slate-500">{new Date(n.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <p className="text-sm text-slate-700 mt-2">{n.message}</p>
+                  <p className="text-[11px] text-slate-500 mt-3 flex items-center gap-1">
+                    <User className="w-3 h-3" /> Sent by: <span className="font-semibold">{n.createdByName}</span>
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: PROFESSIONAL PROFILE */}
       {activeTab === "profile" && !activeQuiz && (

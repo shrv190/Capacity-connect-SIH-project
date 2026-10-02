@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { FirestoreService } from "@/lib/firestore";
 import { StorageService } from "@/lib/storage";
 import {
   Course,
@@ -26,6 +27,9 @@ import {
   Trash2,
   Send,
   Sparkles,
+  Archive,
+  ArrowRightLeft,
+  Bell
 } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
 
@@ -34,13 +38,14 @@ export default function TrainerPortal() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<
-    "builder" | "monitoring" | "library" | "profile"
-  >("builder");
+    "builder" | "monitoring" | "library" | "profile" | "courses" | "notifications"
+  >("courses");
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [resources, setResources] = useState<LibraryResource[]>([]);
   const [submissions, setSubmissions] = useState<QuizSubmission[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   // Quiz Builder State
   const [quizTitle, setQuizTitle] = useState("");
@@ -70,20 +75,62 @@ export default function TrainerPortal() {
   const [resDesc, setResDesc] = useState("");
   const [resSuccessNotice, setResSuccessNotice] = useState<string | null>(null);
 
+  // Notification State
+  const [notifTitle, setNotifTitle] = useState("");
+  const [notifMessage, setNotifMessage] = useState("");
+
   useEffect(() => {
     refreshData();
   }, [currentUser]);
 
-  const refreshData = () => {
-    const allCourses = StorageService.getCourses();
+  const refreshData = async () => {
+    const allCourses = await FirestoreService.getCourses();
     setCourses(allCourses);
-    setQuizzes(StorageService.getQuizzes());
-    setResources(StorageService.getResources());
-    setSubmissions(StorageService.getSubmissions());
+    
+    // We mock quizzes/resources temporarily or pull if backend exists
+    // Since we didn't write full Firestore methods for quizzes in this slice, we will keep them empty or local
+    setQuizzes([]);
+    setResources([]);
+    setSubmissions(await FirestoreService.getSubmissions());
+    setNotifications(await FirestoreService.getNotifications());
+    
     if (allCourses.length > 0 && !quizCourseId) {
       setQuizCourseId(allCourses[0].id);
       setResCourseId(allCourses[0].id);
     }
+  };
+
+  const handleArchive = async (course: Course) => {
+    if (course.archivedByAdmin) {
+      alert("This course was archived by an Administrator and cannot be unarchived by a trainer.");
+      return;
+    }
+    if (course.archived) {
+      await FirestoreService.unarchiveCourse(course.id);
+    } else {
+      await FirestoreService.archiveCourse(course.id, false);
+    }
+    refreshData();
+  };
+
+  const handleMigration = async (courseId: string, accept: boolean) => {
+    if (!currentUser) return;
+    await FirestoreService.resolveCourseMigration(courseId, accept, currentUser.uid, currentUser.displayName);
+    refreshData();
+  };
+
+  const handleAddNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser || !notifTitle || !notifMessage) return;
+    await FirestoreService.addNotification(notifTitle, notifMessage, currentUser.uid, currentUser.displayName);
+    setNotifTitle("");
+    setNotifMessage("");
+    refreshData();
+  };
+
+  const handleDeleteNotification = async (id: string) => {
+    await FirestoreService.deleteNotification(id);
+    refreshData();
   };
 
   // Add Question to Quiz Builder
@@ -268,6 +315,28 @@ export default function TrainerPortal() {
       {/* Trainer Navigation Tabs */}
       <div className="flex overflow-x-auto gap-2 border-b border-slate-200 pb-2 text-sm font-semibold scrollbar-none">
         <button
+          onClick={() => setActiveTab("courses")}
+          className={`px-4 py-2 rounded-xl transition flex items-center gap-2 shrink-0 ${
+            activeTab === "courses"
+              ? "bg-[#0b2545] text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <GraduationCap className="w-4 h-4 text-emerald-400" />
+          <span>My Courses</span>
+        </button>
+        <button
+          onClick={() => setActiveTab("notifications")}
+          className={`px-4 py-2 rounded-xl transition flex items-center gap-2 shrink-0 ${
+            activeTab === "notifications"
+              ? "bg-[#0b2545] text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <Bell className="w-4 h-4 text-amber-400" />
+          <span>Notifications</span>
+        </button>
+        <button
           onClick={() => setActiveTab("builder")}
           className={`px-4 py-2 rounded-xl transition flex items-center gap-2 shrink-0 ${
             activeTab === "builder"
@@ -276,7 +345,7 @@ export default function TrainerPortal() {
           }`}
         >
           <PlusCircle className="w-4 h-4 text-emerald-400" />
-          <span>Questionnaire & Quiz Builder</span>
+          <span>Quiz Builder</span>
         </button>
 
         <button
@@ -303,6 +372,66 @@ export default function TrainerPortal() {
           <span>Trainer Library Uploader ({resources.length})</span>
         </button>
       </div>
+
+      {/* TAB: MY COURSES */}
+      {activeTab === "courses" && (
+        <div className="space-y-6">
+          <h2 className="text-lg font-bold text-slate-900">My Courses & Migrations</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {myCourses.map(course => (
+              <div key={course.id} className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm relative">
+                {course.pendingMigrationToId === currentUser.uid && (
+                  <div className="absolute -top-3 left-4 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-full shadow">
+                    Migration Request
+                  </div>
+                )}
+                <h3 className="font-bold text-slate-900 mb-1">{course.title}</h3>
+                <p className="text-xs text-slate-500 mb-4">{course.description}</p>
+                <div className="flex gap-2 justify-end">
+                  {course.trainerId === currentUser.uid && (
+                    <button onClick={() => handleArchive(course)} className={`text-xs px-3 py-1.5 rounded-xl font-bold flex items-center gap-1 ${course.archived ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}>
+                      <Archive className="w-3.5 h-3.5" /> {course.archived ? "Unarchive" : "Archive"}
+                    </button>
+                  )}
+                  {course.pendingMigrationToId === currentUser.uid && (
+                    <>
+                      <button onClick={() => handleMigration(course.id, false)} className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded-xl font-bold">Reject</button>
+                      <button onClick={() => handleMigration(course.id, true)} className="text-xs bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-xl font-bold">Accept Transfer</button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* TAB: NOTIFICATIONS */}
+      {activeTab === "notifications" && (
+        <div className="space-y-6">
+          <h2 className="text-lg font-bold text-slate-900">Manage Trainee Notifications</h2>
+          <form onSubmit={handleAddNotification} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex gap-2">
+            <input type="text" placeholder="Title" value={notifTitle} onChange={e => setNotifTitle(e.target.value)} className="w-1/3 px-3 py-2 text-sm border border-slate-200 rounded-xl" required />
+            <input type="text" placeholder="Message to Trainees" value={notifMessage} onChange={e => setNotifMessage(e.target.value)} className="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl" required />
+            <button type="submit" className="bg-[#0b2545] text-white px-4 py-2 rounded-xl text-sm font-bold shrink-0">Push Notice</button>
+          </form>
+          <div className="space-y-2">
+            {notifications.map(n => (
+              <div key={n.id} className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex justify-between items-center">
+                <div>
+                  <h4 className="font-bold text-sm text-slate-900">{n.title}</h4>
+                  <p className="text-xs text-slate-500">{n.message}</p>
+                </div>
+                {(n.createdBy === currentUser.uid || currentUser.role === "admin") && (
+                  <button onClick={() => handleDeleteNotification(n.id)} className="text-red-500 hover:text-red-700">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: QUESTIONNAIRE & ASSESSMENT BUILDER */}
       {activeTab === "builder" && (

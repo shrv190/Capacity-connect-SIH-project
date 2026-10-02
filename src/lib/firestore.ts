@@ -117,5 +117,79 @@ export const FirestoreService = {
     if (!db) return [];
     const snapshot = await getDocs(collection(db, "submissions"));
     return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as QuizSubmission));
+  },
+
+  // --- NEW FEATURES (ARCHIVE, MIGRATE, NOTIFICATIONS, DELETE USER) ---
+  async deleteUser(uid: string): Promise<void> {
+    if (!db) return;
+    await deleteDoc(doc(db, "users", uid));
+  },
+
+  async archiveCourse(id: string, byAdmin: boolean): Promise<void> {
+    if (!db) return;
+    await updateDoc(doc(db, "courses", id), {
+      archived: true,
+      ...(byAdmin && { archivedByAdmin: true })
+    });
+  },
+
+  async unarchiveCourse(id: string): Promise<void> {
+    if (!db) return;
+    // Trainer can't unarchive if admin archived it. Admin will have a separate flow if needed.
+    await updateDoc(doc(db, "courses", id), {
+      archived: false,
+      archivedByAdmin: false
+    });
+  },
+
+  async requestCourseMigration(id: string, targetTrainerId: string, targetTrainerName: string): Promise<void> {
+    if (!db) return;
+    await updateDoc(doc(db, "courses", id), {
+      pendingMigrationToId: targetTrainerId,
+      pendingMigrationToName: targetTrainerName
+    });
+  },
+
+  async resolveCourseMigration(id: string, accept: boolean, targetTrainerId?: string, targetTrainerName?: string): Promise<void> {
+    if (!db) return;
+    if (accept && targetTrainerId && targetTrainerName) {
+      // Transfer ownership
+      await updateDoc(doc(db, "courses", id), {
+        trainerId: targetTrainerId,
+        trainerName: targetTrainerName,
+        pendingMigrationToId: null,
+        pendingMigrationToName: null
+      });
+    } else {
+      // Reject / Cancel
+      await updateDoc(doc(db, "courses", id), {
+        pendingMigrationToId: null,
+        pendingMigrationToName: null
+      });
+    }
+  },
+
+  async getNotifications(): Promise<any[]> {
+    if (!db) return [];
+    const snapshot = await getDocs(collection(db, "notifications"));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  },
+
+  async addNotification(title: string, message: string, createdBy: string, createdByName: string): Promise<void> {
+    if (!db) return;
+    const docRef = doc(collection(db, "notifications"));
+    await setDoc(docRef, {
+      id: docRef.id,
+      title,
+      message,
+      createdBy,
+      createdByName,
+      createdAt: new Date().toISOString()
+    });
+  },
+
+  async deleteNotification(id: string): Promise<void> {
+    if (!db) return;
+    await deleteDoc(doc(db, "notifications", id));
   }
 };
