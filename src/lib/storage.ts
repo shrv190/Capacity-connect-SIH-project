@@ -20,14 +20,14 @@ import {
 } from "./mockData";
 
 const STORAGE_KEYS = {
-  USERS: "capacity_connect_users",
-  COURSES: "capacity_connect_courses",
-  QUIZZES: "capacity_connect_quizzes",
-  SUBMISSIONS: "capacity_connect_submissions",
-  RESOURCES: "capacity_connect_resources",
-  ANNOUNCEMENTS: "capacity_connect_announcements",
-  COMPETENCY: "capacity_connect_competency",
-  FEEDBACK: "capacity_connect_feedback",
+  USERS: "capacity_connect_users_v3",
+  COURSES: "capacity_connect_courses_v3",
+  QUIZZES: "capacity_connect_quizzes_v3",
+  SUBMISSIONS: "capacity_connect_submissions_v3",
+  RESOURCES: "capacity_connect_resources_v3",
+  ANNOUNCEMENTS: "capacity_connect_announcements_v3",
+  COMPETENCY: "capacity_connect_competency_v3",
+  FEEDBACK: "capacity_connect_feedback_v3",
 };
 
 function getItem<T>(key: string, defaultValue: T): T {
