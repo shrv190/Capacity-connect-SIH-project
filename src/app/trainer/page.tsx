@@ -27,9 +27,11 @@ import {
   Send,
   Sparkles,
 } from "lucide-react";
+import AuthModal from "@/components/AuthModal";
 
 export default function TrainerPortal() {
-  const { currentUser, fastLoginAs, updateCurrentUserProfile } = useAuth();
+  const { currentUser, updateCurrentUserProfile } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<
     "builder" | "monitoring" | "library" | "profile"
@@ -181,18 +183,48 @@ export default function TrainerPortal() {
 
   if (!currentUser) {
     return (
-      <div className="max-w-4xl mx-auto my-16 p-8 bg-white rounded-2xl border border-slate-200 text-center space-y-4 shadow-sm">
-        <GraduationCap className="w-12 h-12 text-emerald-600 mx-auto" />
-        <h2 className="text-xl font-bold text-slate-900">Trainer Access Required</h2>
-        <p className="text-sm text-slate-600">
-          Please log in as a registered Faculty / Trainer, or use the 1-click evaluator demo button below:
+      <div className="max-w-xl mx-auto my-20 p-8 sm:p-10 bg-white rounded-2xl border border-slate-200 text-center space-y-5 shadow-sm">
+        <div className="w-16 h-16 bg-emerald-50 text-emerald-700 rounded-2xl mx-auto flex items-center justify-center">
+          <GraduationCap className="w-8 h-8" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Trainer Workspace Sign In</h2>
+          <p className="text-xs sm:text-sm text-slate-600 mt-2 max-w-md mx-auto leading-relaxed">
+            Please sign in with your authorized Faculty / Trainer account to manage course curriculum, author questionnaires, review trainee gradebooks, and upload learning materials.
+          </p>
+        </div>
+        <div className="pt-2 flex justify-center">
+          <button
+            onClick={() => setAuthModalOpen(true)}
+            className="px-6 py-3 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-sm shadow transition"
+          >
+            Sign In to Trainer Portal
+          </button>
+        </div>
+        <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      </div>
+    );
+  }
+
+  // If logged in as trainee (unauthorized for trainer tools)
+  if (currentUser.role !== "trainer" && currentUser.role !== "admin") {
+    return (
+      <div className="max-w-xl mx-auto my-20 p-8 sm:p-10 bg-white rounded-2xl border border-slate-200 text-center space-y-4 shadow-sm">
+        <div className="w-14 h-14 bg-amber-50 text-amber-700 rounded-2xl mx-auto flex items-center justify-center text-xl">
+          ⚠️
+        </div>
+        <h2 className="text-xl font-bold text-slate-900">Trainer Privileges Required</h2>
+        <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+          You are currently signed in as a Trainee ({currentUser.displayName}). This workspace is reserved for authorized faculty and subject specialists.
         </p>
-        <button
-          onClick={() => fastLoginAs("trainer")}
-          className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold text-sm shadow-sm"
-        >
-          👨‍🏫 Fast Login as Trainer (Dr. R. S. Sharma)
-        </button>
+        <div className="pt-3 flex justify-center gap-3">
+          <a
+            href="/trainee"
+            className="px-5 py-2.5 bg-[#0b2545] text-white rounded-xl font-bold text-xs shadow"
+          >
+            Go to My Trainee Portal
+          </a>
+        </div>
       </div>
     );
   }

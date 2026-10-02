@@ -33,9 +33,11 @@ import {
   Calendar,
 } from "lucide-react";
 import confetti from "canvas-confetti";
+import AuthModal from "@/components/AuthModal";
 
 export default function TraineePortal() {
-  const { currentUser, fastLoginAs, updateCurrentUserProfile } = useAuth();
+  const { currentUser, updateCurrentUserProfile } = useAuth();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<
     "profile" | "courses" | "library" | "assessments" | "feedback"
@@ -238,21 +240,28 @@ export default function TraineePortal() {
     setTimeout(() => setFeedbackSuccess(false), 4000);
   };
 
-  // If user is not logged in or not a trainee, offer 1-click switch
+  // If user is not logged in
   if (!currentUser) {
     return (
-      <div className="max-w-4xl mx-auto my-16 p-8 bg-white rounded-2xl border border-slate-200 text-center space-y-4 shadow-sm">
-        <GraduationCap className="w-12 h-12 text-blue-600 mx-auto" />
-        <h2 className="text-xl font-bold text-slate-900">Trainee Access Required</h2>
-        <p className="text-sm text-slate-600">
-          Please log in as a registered Trainee, or use the 1-click evaluator demo button below:
-        </p>
-        <button
-          onClick={() => fastLoginAs("trainee")}
-          className="px-6 py-2.5 bg-[#0b2545] hover:bg-[#003b6d] text-white rounded-xl font-semibold text-sm shadow-sm"
-        >
-          👨‍🔬 Fast Login as Trainee (S. K. Verma)
-        </button>
+      <div className="max-w-xl mx-auto my-20 p-8 sm:p-10 bg-white rounded-2xl border border-slate-200 text-center space-y-5 shadow-sm">
+        <div className="w-16 h-16 bg-blue-50 text-blue-700 rounded-2xl mx-auto flex items-center justify-center">
+          <GraduationCap className="w-8 h-8" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Sign In to Trainee Portal</h2>
+          <p className="text-xs sm:text-sm text-slate-600 mt-2 max-w-md mx-auto leading-relaxed">
+            Please sign in with your official account to access your enrolled courses, lecture recordings, timed assessments, and verifiable certificates.
+          </p>
+        </div>
+        <div className="pt-2 flex justify-center">
+          <button
+            onClick={() => setAuthModalOpen(true)}
+            className="px-6 py-3 bg-[#0b2545] hover:bg-[#003b6d] text-white rounded-xl font-bold text-sm shadow transition"
+          >
+            Sign In / Register
+          </button>
+        </div>
+        <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
       </div>
     );
   }

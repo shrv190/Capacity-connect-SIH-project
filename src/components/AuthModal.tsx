@@ -6,25 +6,25 @@ import { UserRole } from "@/types";
 import {
   X,
   LogIn,
-  UserPlus,
   Mail,
   Lock,
   User,
   Building,
   CheckCircle,
   AlertCircle,
-  Sparkles,
   Send,
+  UserCheck,
 } from "lucide-react";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialMode?: "signin" | "register";
 }
 
-export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
-  const { loginWithGoogle, loginWithEmail, signupWithEmail, fastLoginAs } = useAuth();
-  const [mode, setMode] = useState<"signin" | "register">("signin");
+export default function AuthModal({ isOpen, onClose, initialMode = "signin" }: AuthModalProps) {
+  const { loginWithGoogle, loginWithEmail, signupWithEmail } = useAuth();
+  const [mode, setMode] = useState<"signin" | "register">(initialMode);
 
   // Form states
   const [email, setEmail] = useState("");
@@ -48,7 +48,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     if (res.success) {
       onClose();
     } else {
-      setError(res.error || "Failed to sign in. Please verify your credentials.");
+      setError(res.error || "Invalid credentials. Please verify your email and password.");
     }
   };
 
@@ -68,12 +68,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
     if (res.success) {
       setSuccessMsg(
-        "Registration submitted successfully! An activation verification email has been sent to your email address. Once verified and approved by the Admin, your full account features will be enabled."
+        "Account created successfully! An activation verification email has been sent to your email address. Please click the link in your email to verify your account."
       );
       setTimeout(() => {
         onClose();
         setSuccessMsg(null);
-      }, 3500);
+      }, 4000);
     } else {
       setError(res.error || "Registration failed. Please try again.");
     }
@@ -87,13 +87,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     if (res.success) {
       onClose();
     } else {
-      setError(res.error || "Google authentication failed.");
+      setError(res.error || "Google authentication failed. Please try again.");
     }
-  };
-
-  const handleQuickDemo = (demoRole: UserRole) => {
-    fastLoginAs(demoRole);
-    onClose();
   };
 
   return (
@@ -102,7 +97,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition z-10"
         >
           <X className="w-5 h-5" />
         </button>
@@ -118,16 +113,16 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </p>
 
           {/* Mode Tabs */}
-          <div className="flex bg-slate-900/40 p-1 rounded-xl mt-5 text-xs font-semibold">
+          <div className="flex bg-slate-900/50 p-1 rounded-xl mt-5 text-xs font-semibold">
             <button
               onClick={() => {
                 setMode("signin");
                 setError(null);
                 setSuccessMsg(null);
               }}
-              className={`flex-1 py-1.5 rounded-lg transition ${
+              className={`flex-1 py-2 rounded-lg transition ${
                 mode === "signin"
-                  ? "bg-white text-[#0b2545] shadow-sm"
+                  ? "bg-white text-[#0b2545] shadow-sm font-bold"
                   : "text-slate-300 hover:text-white"
               }`}
             >
@@ -139,9 +134,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 setError(null);
                 setSuccessMsg(null);
               }}
-              className={`flex-1 py-1.5 rounded-lg transition ${
+              className={`flex-1 py-2 rounded-lg transition ${
                 mode === "register"
-                  ? "bg-white text-[#0b2545] shadow-sm"
+                  ? "bg-white text-[#0b2545] shadow-sm font-bold"
                   : "text-slate-300 hover:text-white"
               }`}
             >
@@ -151,18 +146,18 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-start gap-2">
+            <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-start gap-2">
               <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
               <span>{error}</span>
             </div>
           )}
 
           {successMsg && (
-            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg flex items-start gap-2">
+            <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-xl flex items-start gap-2">
               <CheckCircle className="w-4 h-4 shrink-0 mt-0.5 text-emerald-600" />
-              <span>{successMsg}</span>
+              <span className="leading-relaxed">{successMsg}</span>
             </div>
           )}
 
@@ -190,20 +185,20 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
               />
             </svg>
-            <span>Continue with Google</span>
+            <span>{mode === "signin" ? "Sign in with Google" : "Sign up with Google"}</span>
           </button>
 
           <div className="relative flex py-1 items-center">
             <div className="flex-grow border-t border-slate-200"></div>
             <span className="flex-shrink mx-3 text-slate-400 text-xs uppercase font-medium">
-              or use official email
+              or use official credentials
             </span>
             <div className="flex-grow border-t border-slate-200"></div>
           </div>
 
           {/* Form */}
           {mode === "signin" ? (
-            <form onSubmit={handleSignIn} className="space-y-3">
+            <form onSubmit={handleSignIn} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Official Email Address
@@ -215,8 +210,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="officer@imd.gov.in"
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
+                    placeholder="name@imd.gov.in"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
                   />
                 </div>
               </div>
@@ -233,7 +228,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
                   />
                 </div>
               </div>
@@ -241,10 +236,21 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-[#0b2545] hover:bg-[#003b6d] text-white rounded-xl font-semibold text-sm transition shadow-sm"
+                className="w-full py-2.5 bg-[#0b2545] hover:bg-[#003b6d] text-white rounded-xl font-bold text-sm transition shadow-sm"
               >
-                {loading ? "Signing in..." : "Sign In to Portal"}
+                {loading ? "Authenticating..." : "Sign In to Portal"}
               </button>
+
+              <div className="text-center text-xs text-slate-500 pt-1">
+                Don&apos;t have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => setMode("register")}
+                  className="font-bold text-blue-700 hover:underline"
+                >
+                  Register here
+                </button>
+              </div>
             </form>
           ) : (
             <form onSubmit={handleRegister} className="space-y-3">
@@ -259,15 +265,15 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     required
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    placeholder="Dr. Rajesh Kumar"
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
+                    placeholder="Dr. S. K. Sharma"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Official Email (for Activation)
+                  Official Email (for Activation Link)
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -276,8 +282,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="rajesh.kumar@imd.gov.in"
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
+                    placeholder="officer@imd.gov.in"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
                   />
                 </div>
               </div>
@@ -293,8 +299,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     required
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="Radar Div / RMC Kolkata"
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
+                    placeholder="Radar Div / RMC New Delhi"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
                   />
                 </div>
               </div>
@@ -306,17 +312,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as UserRole)}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545] focus:outline-none font-medium text-slate-800"
+                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0b2545] focus:outline-none font-medium text-slate-800"
                 >
-                  <option value="trainee">Trainee (Scientist / Field Officer / Observer)</option>
-                  <option value="trainer">Trainer (Faculty / Subject Specialist)</option>
-                  <option value="admin">Administrator (Supervisory / DG Office)</option>
+                  <option value="trainee">Trainee (Learner / Field Officer / Observer)</option>
+                  <option value="trainer">Trainer (Instructor / Subject Specialist)</option>
+                  <option value="admin">Administrator (Supervisory Officer)</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Password (min 6 characters)
+                  Create Password (min 6 characters)
                 </label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -326,7 +332,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
+                    className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-[#0b2545] focus:outline-none"
                   />
                 </div>
               </div>
@@ -334,49 +340,24 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-semibold text-sm transition shadow-sm flex items-center justify-center gap-1.5"
+                className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-sm transition shadow-sm flex items-center justify-center gap-1.5"
               >
                 <Send className="w-4 h-4" />
-                {loading ? "Registering & Sending Email..." : "Register & Send Activation Email"}
+                {loading ? "Sending Activation Email..." : "Register & Send Activation Link"}
               </button>
+
+              <div className="text-center text-xs text-slate-500 pt-1">
+                Already registered?{" "}
+                <button
+                  type="button"
+                  onClick={() => setMode("signin")}
+                  className="font-bold text-blue-700 hover:underline"
+                >
+                  Sign In
+                </button>
+              </div>
             </form>
           )}
-
-          {/* Quick Demo Switcher Section for Evaluators */}
-          <div className="pt-3 border-t border-slate-200">
-            <div className="flex items-center gap-1 text-[11px] font-bold text-slate-600 mb-2 uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span>Evaluator 1-Click Fast Logins:</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickDemo("trainee")}
-                className="py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-800 text-xs font-semibold rounded-lg border border-blue-200 transition text-center"
-              >
-                👨‍🔬 Trainee
-                <span className="block text-[10px] text-blue-600 font-normal">S.K. Verma</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemo("trainer")}
-                className="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold rounded-lg border border-emerald-200 transition text-center"
-              >
-                👨‍🏫 Trainer
-                <span className="block text-[10px] text-emerald-600 font-normal">Dr. Sharma</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemo("admin")}
-                className="py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-semibold rounded-lg border border-amber-200 transition text-center"
-              >
-                🏛️ Admin
-                <span className="block text-[10px] text-amber-600 font-normal">Dr. Mohapatra</span>
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
