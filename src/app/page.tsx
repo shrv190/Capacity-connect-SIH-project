@@ -75,7 +75,7 @@ export default function HomePage() {
 
         <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
           {/* Hero Left */}
-          <div className="lg:col-span-7 space-y-7">
+          <div className="lg:col-span-7 space-y-7 animate-slide-right">
             <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 border border-indigo-200 px-3.5 py-1.5 rounded-full text-xs font-semibold">
               <Zap className="w-3.5 h-3.5 text-indigo-500" />
               <span>Modern Learning Management Platform</span>
@@ -130,7 +130,7 @@ export default function HomePage() {
           </div>
 
           {/* Hero Right: Feature Highlights Card */}
-          <div className="lg:col-span-5 bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 space-y-5 shadow-xl shadow-indigo-100/40">
+          <div className="lg:col-span-5 bg-white rounded-2xl p-6 sm:p-8 border border-gray-100 space-y-5 shadow-xl shadow-indigo-100/40 animate-slide-up" style={{ animationDelay: "0.2s" }}>
             <div className="flex items-center gap-3 border-b border-gray-100 pb-4">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white flex items-center justify-center shadow-sm">
                 <Zap className="w-5 h-5" />
@@ -187,7 +187,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Stats Strip ── */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in" style={{ animationDelay: "0.3s" }}>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { icon: Users, color: "indigo", value: "5,200+", label: "Professionals Trained" },

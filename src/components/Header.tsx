@@ -17,16 +17,29 @@ import {
   BookOpen,
   Send,
   Zap,
+  Share2,
+  Edit,
 } from "lucide-react";
 import AuthModal from "./AuthModal";
+import EditProfileModal from "./EditProfileModal";
 
 export default function Header() {
   const pathname = usePathname();
   const { currentUser, logout, resendVerificationEmail } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<"signin" | "register">("signin");
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [verificationNotice, setVerificationNotice] = useState<string | null>(null);
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
+
+  const handleShareProfile = () => {
+    if (!currentUser) return;
+    const url = `${window.location.origin}/profile/${currentUser.uid}`;
+    navigator.clipboard.writeText(url);
+    setShareNotice("Profile link copied!");
+    setTimeout(() => setShareNotice(null), 3000);
+  };
 
   const handleResendVerification = async () => {
     const res = await resendVerificationEmail();
@@ -138,6 +151,28 @@ export default function Header() {
             <div className="hidden md:flex items-center space-x-3">
               {currentUser ? (
                 <div className="flex items-center space-x-3 pl-3 border-l border-gray-200">
+                  {shareNotice && (
+                    <span className="text-xs text-emerald-600 font-medium bg-emerald-50 px-2 py-1 rounded animate-fade-in">
+                      {shareNotice}
+                    </span>
+                  )}
+                  <div className="flex items-center bg-gray-50 border border-gray-100 rounded-lg p-1">
+                    <button
+                      onClick={() => setEditProfileOpen(true)}
+                      className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition"
+                      title="Edit Profile"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={handleShareProfile}
+                      className="p-1.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-md transition"
+                      title="Share Public Profile"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  
                   <div className="text-right">
                     <div className="flex items-center justify-end gap-1.5">
                       <span className="font-semibold text-sm text-gray-900">
@@ -321,6 +356,15 @@ export default function Header() {
         onClose={() => setAuthModalOpen(false)}
         initialMode={authModalMode}
       />
+
+      {/* Edit Profile Modal */}
+      {currentUser && (
+        <EditProfileModal
+          isOpen={editProfileOpen}
+          onClose={() => setEditProfileOpen(false)}
+          user={currentUser}
+        />
+      )}
     </>
   );
 }

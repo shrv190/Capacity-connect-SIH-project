@@ -120,6 +120,39 @@ export default function AdminPortal() {
     }
   };
 
+  // Competency CMS Form State
+  const [compSubject, setCompSubject] = useState("");
+  const [compDomain, setCompDomain] = useState("");
+  const [compSkills, setCompSkills] = useState("");
+  const [compExp, setCompExp] = useState<number>(3);
+  const [compDesc, setCompDesc] = useState("");
+
+  const handleAddCompetency = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!compSubject || !compDomain || !compSkills) return;
+    
+    StorageService.addCompetencyMapping({
+      subject: compSubject,
+      domain: compDomain,
+      requiredSkills: compSkills.split(",").map(s => s.trim()).filter(Boolean),
+      minExperienceYears: compExp,
+      recommendedTrainerIds: [],
+      description: compDesc
+    });
+    
+    setCompSubject("");
+    setCompDomain("");
+    setCompSkills("");
+    setCompDesc("");
+    setCompExp(3);
+    refreshData();
+  };
+
+  const handleDeleteCompetency = (id: string) => {
+    StorageService.deleteCompetencyMapping(id);
+    refreshData();
+  };
+
   if (!currentUser) {
     return (
       <div className="max-w-xl mx-auto my-20 p-8 sm:p-10 bg-white rounded-2xl border border-slate-200 text-center space-y-5 shadow-sm">
@@ -257,7 +290,7 @@ export default function AdminPortal() {
           }`}
         >
           <BarChart3 className="w-4 h-4 text-emerald-400" />
-          <span>Executive Dashboards & Analytics</span>
+          <span>Analytics</span>
         </button>
 
         <button
@@ -269,7 +302,7 @@ export default function AdminPortal() {
           }`}
         >
           <Bell className="w-4 h-4 text-amber-400" />
-          <span>Announcements & Notifications ({announcements.length})</span>
+          <span>Announcements ({announcements.length})</span>
         </button>
 
         <button
@@ -753,11 +786,46 @@ export default function AdminPortal() {
         <div className="space-y-6">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
-              MoES / IMD Competency Mapping Engine
+              Competency Mapping Engine
             </h2>
             <p className="text-xs text-slate-500">
-              Intelligent matrix mapping specialized meteorological subjects to qualified trainers based on skills, domain, and experience.
+              Intelligent matrix mapping specialized subjects to qualified trainers based on skills, domain, and experience.
             </p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm mb-6">
+            <h3 className="font-bold text-sm text-slate-900 border-b border-slate-100 pb-2 mb-4">
+              Create New Competency Requirement
+            </h3>
+            <form onSubmit={handleAddCompetency} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Subject / Role Name</label>
+                <input required value={compSubject} onChange={e => setCompSubject(e.target.value)} placeholder="e.g. Advanced Frontend Architecture" className="w-full text-xs p-2.5 border border-slate-300 rounded-lg" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Domain / Category</label>
+                <input required value={compDomain} onChange={e => setCompDomain(e.target.value)} placeholder="e.g. Software Engineering" className="w-full text-xs p-2.5 border border-slate-300 rounded-lg" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Required Core Skills (comma separated)</label>
+                <input required value={compSkills} onChange={e => setCompSkills(e.target.value)} placeholder="e.g. React, TypeScript, System Design" className="w-full text-xs p-2.5 border border-slate-300 rounded-lg" />
+              </div>
+              <div className="md:col-span-2 flex gap-4">
+                <div className="w-1/3">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Min Experience (Years)</label>
+                  <input type="number" required min="0" value={compExp} onChange={e => setCompExp(Number(e.target.value))} className="w-full text-xs p-2.5 border border-slate-300 rounded-lg" />
+                </div>
+                <div className="w-2/3">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+                  <input required value={compDesc} onChange={e => setCompDesc(e.target.value)} placeholder="Brief description of the competency..." className="w-full text-xs p-2.5 border border-slate-300 rounded-lg" />
+                </div>
+              </div>
+              <div className="md:col-span-2 flex justify-end mt-2">
+                <button type="submit" className="px-5 py-2.5 bg-[#0b2545] hover:bg-[#003b6d] text-white rounded-xl text-xs font-bold shadow flex items-center gap-1.5">
+                  <Plus className="w-4 h-4" /> Add Competency Map
+                </button>
+              </div>
+            </form>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -774,12 +842,21 @@ export default function AdminPortal() {
                 >
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
-                        {comp.domain}
-                      </span>
-                      <span className="text-[11px] text-slate-500">
-                        Req. Exp: <strong>{comp.minExperienceYears}+ Years</strong>
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+                          {comp.domain}
+                        </span>
+                        <span className="text-[11px] text-slate-500">
+                          Req. Exp: <strong>{comp.minExperienceYears}+ Years</strong>
+                        </span>
+                      </div>
+                      <button 
+                        onClick={() => handleDeleteCompetency(comp.id)}
+                        className="text-slate-400 hover:text-red-600 p-1"
+                        title="Delete Competency Mapping"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
 
                     <h3 className="font-bold text-base text-slate-900">{comp.subject}</h3>

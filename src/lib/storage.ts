@@ -213,6 +213,20 @@ export const StorageService = {
 
   // Competency Mappings
   getCompetencyMappings: (): CompetencyMapping[] => getItem(STORAGE_KEYS.COMPETENCY, INITIAL_COMPETENCY_MAPPINGS),
+  addCompetencyMapping: (comp: Omit<CompetencyMapping, "id">): CompetencyMapping => {
+    const mappings = StorageService.getCompetencyMappings();
+    const newComp: CompetencyMapping = {
+      ...comp,
+      id: `comp-${Date.now()}`,
+    };
+    mappings.unshift(newComp);
+    setItem(STORAGE_KEYS.COMPETENCY, mappings);
+    return newComp;
+  },
+  deleteCompetencyMapping: (id: string): void => {
+    const mappings = StorageService.getCompetencyMappings().filter((c) => c.id !== id);
+    setItem(STORAGE_KEYS.COMPETENCY, mappings);
+  },
 
   // Reset to Demo
   resetToFactoryDefaults: (): void => {
