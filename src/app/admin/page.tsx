@@ -210,7 +210,7 @@ export default function AdminPortal() {
         <div>
           <h2 className="text-2xl font-bold text-slate-900">Admin Console Sign In</h2>
           <p className="text-xs sm:text-sm text-slate-600 mt-2 max-w-md mx-auto leading-relaxed">
-            Please sign in with authorized Administrative or Director General Office credentials to manage user approvals, national personnel directories, executive analytics, and competency mapping.
+            Please sign in with authorized Administrative credentials to manage user approvals, personnel directories, executive analytics, and competency mapping.
           </p>
         </div>
         <div className="pt-2 flex justify-center">
@@ -271,33 +271,6 @@ export default function AdminPortal() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      {/* Header Profile Summary Card */}
-      <div className="bg-gradient-to-r from-[#0b2545] via-[#003b6d] to-[#134e5e] text-white p-6 rounded-2xl shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-amber-400 font-bold text-2xl shadow-inner">
-            🏛️
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-bold">{currentUser.displayName}</h1>
-              <span className="text-[11px] bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded font-semibold flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-400" /> Admin & Director General Office
-              </span>
-            </div>
-            <p className="text-xs text-slate-300 mt-1">
-              {currentUser.designation} • {currentUser.department} • {currentUser.location}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="text-right text-xs bg-white/10 px-3 py-2 rounded-xl border border-white/10">
-            <span className="text-slate-300 block text-[10px] uppercase font-bold">Pending Approvals</span>
-            <span className="text-lg font-extrabold text-amber-400">{pendingUsers.length}</span>
-          </div>
-        </div>
-      </div>
-
       {/* Admin Navigation Tabs */}
       <div className="flex overflow-x-auto gap-2 border-b border-slate-200 pb-2 text-sm font-semibold scrollbar-none">
         <button
@@ -422,10 +395,10 @@ export default function AdminPortal() {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
               <div>
                 <h3 className="font-bold text-base text-slate-900">
-                  National Personnel & Role Directory
+                  Personnel & Role Directory
                 </h3>
                 <p className="text-xs text-slate-500">
-                  Manage roles, view verification status, and adjust permissions for staff across India.
+                  Manage roles, view verification status, and adjust permissions for users across the platform.
                 </p>
               </div>
 

@@ -44,11 +44,11 @@ export default function HomePage() {
 
   const domains = [
     "All",
-    "Radar Meteorology",
-    "Numerical Modeling",
-    "Satellite Meteorology",
-    "Cyclone Forecasting",
-    "Agro-Meteorology",
+    "Software Engineering",
+    "Data Science",
+    "Product Management",
+    "Design Thinking",
+    "Business Analytics",
   ];
 
   const filteredCourses =
@@ -98,7 +98,7 @@ export default function HomePage() {
 
             <p className="text-base text-gray-600 max-w-xl leading-relaxed">
               Structured curriculum, competency mapping, timed assessments, and verifiable digital
-              certifications for meteorological and earth sciences professionals.
+              certifications for professionals and teams.
             </p>
 
             <div className="flex flex-wrap items-center gap-3 pt-1">
@@ -281,10 +281,10 @@ export default function HomePage() {
               Course Catalog
             </div>
             <h2 className="text-2xl font-extrabold text-gray-900">
-              Atmospheric &amp; Earth Science Courses
+              Professional Development Courses
             </h2>
             <p className="text-sm text-gray-500 mt-1">
-              Comprehensive modules in Doppler Radar, Numerical Modeling, Cyclone Tracking, and Agrometeorology.
+              Comprehensive modules for career advancement and skill development.
             </p>
           </div>
 

@@ -282,7 +282,7 @@ export default function AuthModal({ isOpen, onClose, initialMode = "signin" }: A
                     required
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
-                    placeholder="e.g. Radar Division, MoES"
+                    placeholder="e.g. Engineering Division"
                     className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                   />
                 </div>

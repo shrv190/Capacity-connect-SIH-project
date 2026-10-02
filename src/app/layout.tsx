@@ -18,10 +18,10 @@ export const metadata: Metadata = {
   keywords: [
     "Learning Management System",
     "Capacity Building",
-    "Meteorology Training",
+    "Corporate Training",
     "Online Courses",
     "Professional Development",
-    "Earth Sciences",
+    "Skill Development",
   ],
 };
 
