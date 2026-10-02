@@ -27,6 +27,7 @@ import {
   Building,
   AlertTriangle,
   RotateCcw,
+  BookOpen,
 } from "lucide-react";
 import AuthModal from "@/components/AuthModal";
 
@@ -35,7 +36,7 @@ export default function AdminPortal() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const [activeTab, setActiveTab] = useState<
-    "approvals" | "analytics" | "cms" | "competency"
+    "approvals" | "courses" | "analytics" | "cms" | "competency"
   >("approvals");
 
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -110,6 +111,13 @@ export default function AdminPortal() {
   const handleDeleteAnnouncement = (id: string) => {
     StorageService.deleteAnnouncement(id);
     refreshData();
+  };
+
+  const handleDeleteCourse = (id: string) => {
+    if (confirm("Are you sure you want to delete this course?")) {
+      StorageService.deleteCourse(id);
+      refreshData();
+    }
   };
 
   if (!currentUser) {
@@ -229,6 +237,18 @@ export default function AdminPortal() {
         </button>
 
         <button
+          onClick={() => setActiveTab("courses")}
+          className={`px-4 py-2 rounded-xl transition flex items-center gap-2 shrink-0 ${
+            activeTab === "courses"
+              ? "bg-[#0b2545] text-white shadow-sm"
+              : "text-slate-600 hover:bg-slate-100"
+          }`}
+        >
+          <BookOpen className="w-4 h-4 text-blue-400" />
+          <span>Course Management ({courses.length})</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab("analytics")}
           className={`px-4 py-2 rounded-xl transition flex items-center gap-2 shrink-0 ${
             activeTab === "analytics"
@@ -249,7 +269,7 @@ export default function AdminPortal() {
           }`}
         >
           <Bell className="w-4 h-4 text-amber-400" />
-          <span>Homepage CMS & Circulars ({announcements.length})</span>
+          <span>Announcements & Notifications ({announcements.length})</span>
         </button>
 
         <button
@@ -433,15 +453,70 @@ export default function AdminPortal() {
         </div>
       )}
 
+      {/* TAB: COURSE MANAGEMENT */}
+      {activeTab === "courses" && (
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="font-bold text-base text-slate-900">
+                  Global Course Directory
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Full administrative control over courses created by any trainer on the platform.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {courses.map((course) => (
+                <div key={course.id} className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex flex-col justify-between">
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded">
+                        {course.domain}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        {course.enrolledTraineeIds.length} learners
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-sm text-slate-900 mt-2">{course.title}</h4>
+                    <p className="text-xs text-slate-500 mt-1 line-clamp-2">{course.description}</p>
+                    <div className="text-[11px] text-slate-600 mt-2">
+                      Instructor: <span className="font-semibold">{course.trainerName}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-3 border-t border-slate-200 flex justify-end">
+                    <button
+                      onClick={() => handleDeleteCourse(course.id)}
+                      className="text-xs font-bold text-red-600 hover:text-red-700 flex items-center gap-1"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" /> Remove Course
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {courses.length === 0 && (
+                <div className="col-span-full py-8 text-center text-slate-500 text-sm">
+                  No courses have been published yet.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* TAB 2: EXECUTIVE MONITORING DASHBOARDS & ANALYTICS */}
       {activeTab === "analytics" && (
         <div className="space-y-6">
           <div>
             <h2 className="text-lg font-bold text-slate-900">
-              Executive Directorate Capacity Building Analytics
+              Platform Usage & Analytics
             </h2>
             <p className="text-xs text-slate-500">
-              Real-time monitoring of course enrollments, regional RMC coverage, assessments, and pass rates.
+              Real-time monitoring of course enrollments, active learners, and learning distribution.
             </p>
           </div>
 
@@ -449,7 +524,7 @@ export default function AdminPortal() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                Total Trainees
+                Total Learners
               </span>
               <div className="text-3xl font-extrabold text-blue-700 mt-1">{totalTrainees}</div>
               <div className="text-xs text-slate-500 mt-1">Registered & Active</div>
@@ -457,10 +532,10 @@ export default function AdminPortal() {
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                Qualified Trainers
+                Platform Trainers
               </span>
               <div className="text-3xl font-extrabold text-emerald-700 mt-1">{totalTrainers}</div>
-              <div className="text-xs text-slate-500 mt-1">Subject Specialists</div>
+              <div className="text-xs text-slate-500 mt-1">Course Creators</div>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
@@ -480,60 +555,64 @@ export default function AdminPortal() {
             </div>
           </div>
 
-          {/* Regional RMC Participation Breakdown */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Top Courses by Enrollment */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
               <h3 className="font-bold text-sm text-slate-900 border-b border-slate-100 pb-2">
-                Regional Meteorological Centre (RMC) Participation
+                Top Enrolled Courses
               </h3>
 
               <div className="space-y-3">
-                {[
-                  { rmc: "RMC New Delhi (HQ & Northern Plains)", count: 48, pct: 85 },
-                  { rmc: "RMC Kolkata (Eastern & Bay of Bengal)", count: 42, pct: 78 },
-                  { rmc: "IMD Pune (CTI & Climate Training)", count: 56, pct: 94 },
-                  { rmc: "RMC Chennai (Southern Peninsula)", count: 38, pct: 72 },
-                  { rmc: "RMC Mumbai (Arabian Sea & Western Coast)", count: 34, pct: 68 },
-                  { rmc: "RMC Guwahati (Northeastern Region)", count: 28, pct: 60 },
-                ].map((item, idx) => (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex justify-between text-xs font-medium">
-                      <span className="text-slate-800">{item.rmc}</span>
-                      <span className="font-bold text-slate-900">{item.count} Personnel</span>
+                {courses.length > 0 ? (
+                  [...courses].sort((a, b) => b.enrolledTraineeIds.length - a.enrolledTraineeIds.length).slice(0, 5).map((course, idx) => (
+                    <div key={idx} className="space-y-1">
+                      <div className="flex justify-between text-xs font-medium">
+                        <span className="text-slate-800 line-clamp-1">{course.title}</span>
+                        <span className="font-bold text-slate-900 whitespace-nowrap ml-2">{course.enrolledTraineeIds.length} Learners</span>
+                      </div>
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-blue-600 rounded-full"
+                          style={{ width: `${Math.min(100, Math.max(10, (course.enrolledTraineeIds.length / Math.max(1, totalTrainees)) * 100))}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-blue-600 rounded-full"
-                        style={{ width: `${item.pct}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-xs text-slate-500 text-center py-4">No course data available</div>
+                )}
               </div>
             </div>
 
-            {/* Course Domain Enrollment Distribution */}
+            {/* Course Category Distribution */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
               <h3 className="font-bold text-sm text-slate-900 border-b border-slate-100 pb-2">
-                Discipline-Wise Training Distribution
+                Course Category Distribution
               </h3>
 
               <div className="space-y-3">
-                {[
-                  { domain: "Radar Meteorology & Dual-Pol", share: "32%", color: "bg-cyan-500" },
-                  { domain: "Numerical Weather Prediction (WRF)", share: "28%", color: "bg-blue-600" },
-                  { domain: "Satellite Meteorology (INSAT-3DS)", share: "20%", color: "bg-purple-600" },
-                  { domain: "Tropical Cyclone Warning Systems", share: "12%", color: "bg-amber-500" },
-                  { domain: "Agrometeorological Advisories (AAS)", share: "8%", color: "bg-emerald-500" },
-                ].map((item, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-                    <div className="flex items-center gap-2.5">
-                      <span className={`w-3 h-3 rounded-full ${item.color}`} />
-                      <span className="text-xs font-bold text-slate-800">{item.domain}</span>
+                {(() => {
+                  const domains = courses.reduce((acc, c) => {
+                    acc[c.domain] = (acc[c.domain] || 0) + 1;
+                    return acc;
+                  }, {} as Record<string, number>);
+                  const domainEntries = Object.entries(domains).sort((a, b) => b[1] - a[1]);
+                  const colors = ["bg-cyan-500", "bg-blue-600", "bg-purple-600", "bg-amber-500", "bg-emerald-500"];
+                  
+                  if (domainEntries.length === 0) {
+                    return <div className="text-xs text-slate-500 text-center py-4">No categories available</div>;
+                  }
+
+                  return domainEntries.map(([domain, count], idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <div className="flex items-center gap-2.5">
+                        <span className={`w-3 h-3 rounded-full ${colors[idx % colors.length]}`} />
+                        <span className="text-xs font-bold text-slate-800">{domain}</span>
+                      </div>
+                      <span className="text-xs font-mono font-bold text-slate-700">{count} Courses</span>
                     </div>
-                    <span className="text-xs font-mono font-bold text-slate-700">{item.share}</span>
-                  </div>
-                ))}
+                  ));
+                })()}
               </div>
             </div>
           </div>

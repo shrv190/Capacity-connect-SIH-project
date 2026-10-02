@@ -93,6 +93,10 @@ export const StorageService = {
     }
     return false;
   },
+  deleteCourse: (id: string): void => {
+    const courses = StorageService.getCourses().filter((c) => c.id !== id);
+    setItem(STORAGE_KEYS.COURSES, courses);
+  },
 
   // Quizzes
   getQuizzes: (): Quiz[] => getItem(STORAGE_KEYS.QUIZZES, INITIAL_QUIZZES),
