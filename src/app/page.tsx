@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { StorageService } from "@/lib/storage";
+import { FirestoreService } from "@/lib/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { Course, Announcement } from "@/types";
 import {
@@ -32,8 +33,13 @@ export default function HomePage() {
   const [selectedCourseDetails, setSelectedCourseDetails] = useState<Course | null>(null);
 
   useEffect(() => {
-    setCourses(StorageService.getCourses());
-    setAnnouncements(StorageService.getAnnouncements());
+    const fetchData = async () => {
+      const dbCourses = await FirestoreService.getCourses();
+      const dbAnnouncements = await FirestoreService.getAnnouncements();
+      setCourses(dbCourses);
+      setAnnouncements(dbAnnouncements);
+    };
+    fetchData();
   }, []);
 
   const domains = [
@@ -50,19 +56,20 @@ export default function HomePage() {
       ? courses
       : courses.filter((c) => c.domain === selectedDomain);
 
-  const handleEnroll = (courseId: string) => {
+  const handleEnroll = async (courseId: string) => {
     if (!currentUser) {
       setAuthModalOpen(true);
       return;
     }
-    const success = StorageService.enrollInCourse(courseId, currentUser.uid);
+    const success = await FirestoreService.enrollInCourse(courseId, currentUser.uid);
     if (success) {
-      setCourses(StorageService.getCourses());
+      const dbCourses = await FirestoreService.getCourses();
+      setCourses(dbCourses);
       alert(
         "Successfully enrolled! You can now access all learning resources and assessments in your dashboard."
       );
     } else {
-      alert("You are already enrolled in this course.");
+      alert("You are already enrolled in this course or an error occurred.");
     }
   };
 

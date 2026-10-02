@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { UserProfile, UserRole } from "@/types";
 import { StorageService } from "@/lib/storage";
+import { FirestoreService } from "@/lib/firestore";
 import {
   auth,
   googleProvider,
@@ -51,11 +52,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
+// AuthContext.tsx modified for Firestore
     if (auth && isFirebaseConfigured()) {
-      const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
+      const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
         setFirebaseUser(fbUser);
         if (fbUser) {
-          const existing = StorageService.getUserById(fbUser.uid);
+          const existing = await FirestoreService.getUserById(fbUser.uid);
           if (existing) {
             existing.emailVerified = fbUser.emailVerified;
             setCurrentUser(existing);
@@ -75,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (auth && googleProvider && isFirebaseConfigured()) {
         const result = await signInWithPopup(auth, googleProvider);
         const fbUser = result.user;
-        let profile = StorageService.getUserById(fbUser.uid);
+        let profile = await FirestoreService.getUserById(fbUser.uid);
 
         if (!profile) {
           profile = {
@@ -95,21 +97,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             certificates: [],
             createdAt: new Date().toISOString(),
           };
-          StorageService.saveUser(profile);
+          await FirestoreService.saveUser(profile);
         } else {
           profile.emailVerified = fbUser.emailVerified;
-          StorageService.saveUser(profile);
+          await FirestoreService.saveUser(profile);
         }
 
         setCurrentUser(profile);
         sessionStorage.setItem("capacity_active_uid", profile.uid);
         return { success: true };
       } else {
-        // Fallback demo Google simulation
-        const profile = StorageService.getUsers().find((u) => u.role === "trainee") || StorageService.getUsers()[0];
-        setCurrentUser(profile);
-        sessionStorage.setItem("capacity_active_uid", profile.uid);
-        return { success: true };
+        return { success: false, error: "Firebase not configured." };
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Google authentication error";
@@ -122,10 +120,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (auth && isFirebaseConfigured()) {
         const result = await signInWithEmailAndPassword(auth, email, pass);
         const fbUser = result.user;
-        let profile = StorageService.getUserById(fbUser.uid);
+        let profile = await FirestoreService.getUserById(fbUser.uid);
 
         if (!profile) {
-          profile = StorageService.getUsers().find((u) => u.email.toLowerCase() === email.toLowerCase());
+          const allUsers = await FirestoreService.getUsers();
+          profile = allUsers.find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
         }
 
         if (profile) {
@@ -134,16 +133,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           sessionStorage.setItem("capacity_active_uid", profile.uid);
           return { success: true };
         }
-      }
-
-      // Check local users store
-      const localUser = StorageService.getUsers().find(
-        (u) => u.email.toLowerCase() === email.toLowerCase()
-      );
-      if (localUser) {
-        setCurrentUser(localUser);
-        sessionStorage.setItem("capacity_active_uid", localUser.uid);
-        return { success: true };
       }
 
       return { success: false, error: "Invalid credentials or user not registered." };
@@ -167,11 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (auth && isFirebaseConfigured()) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
         uid = userCredential.user.uid;
-        // Real activation verification email sending
         await sendEmailVerification(userCredential.user);
-        verificationSent = true;
-      } else {
-        // In local mode, mark verification simulation
         verificationSent = true;
       }
 
@@ -180,7 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         displayName,
         role,
-        status: "pending", // Newly signed up users require Admin approval
+        status: "pending",
         emailVerified: false,
         department: department || "India Meteorological Department (MoES)",
         designation: role === "trainer" ? "Senior Scientist / Instructor" : "Scientific Officer / Trainee",
@@ -193,7 +178,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createdAt: new Date().toISOString(),
       };
 
-      StorageService.saveUser(newProfile);
+      await FirestoreService.saveUser(newProfile);
       setCurrentUser(newProfile);
       sessionStorage.setItem("capacity_active_uid", newProfile.uid);
 
@@ -210,7 +195,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await sendEmailVerification(auth.currentUser);
         return { success: true };
       }
-      return { success: true }; // simulated success in fallback
+      return { success: true };
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to send verification email";
       return { success: false, error: msg };
@@ -232,20 +217,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const fastLoginAs = (role: UserRole) => {
-    const users = StorageService.getUsers();
-    let target = users.find((u) => u.role === role);
-    if (!target) target = users[0];
-    setCurrentUser(target);
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("capacity_active_uid", target.uid);
-    }
-  };
+  const fastLoginAs = () => {}; // Deprecated in production
 
-  const updateCurrentUserProfile = (updated: Partial<UserProfile>) => {
+  const updateCurrentUserProfile = async (updated: Partial<UserProfile>) => {
     if (!currentUser) return;
     const merged = { ...currentUser, ...updated };
-    StorageService.saveUser(merged);
+    await FirestoreService.saveUser(merged);
     setCurrentUser(merged);
   };
 
